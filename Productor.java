@@ -21,7 +21,7 @@ public class Productor extends Thread {
         try {
             while (true) {
                 // 1) Prioridad: Verificar si hay producto en reproceso (sin bloquear)
-                Product prodRepro = buzonReproceso.retirarNoBloqueante();
+                Product prodRepro = buzonReproceso.retirar();
 
                 if (prodRepro != null) {
                     // Hay producto en reproceso

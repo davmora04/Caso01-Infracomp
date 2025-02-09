@@ -11,21 +11,10 @@ public class BuzonReproceso {
     }
 
     /**
-     * Retira un producto de forma bloqueante.
-     * Si la cola está vacía, el hilo hace wait() hasta que alguien deposite.
-     */
-    public synchronized Product retirar() throws InterruptedException {
-        while (cola.isEmpty()) {
-            wait();
-        }
-        return cola.remove();
-    }
-
-    /**
      * Método no bloqueante para que el productor verifique sin quedar esperando
      * (Por si deseas mantener la 'prioridad' de reproceso de forma rápida).
      */
-    public synchronized Product retirarNoBloqueante() {
+    public synchronized Product retirar() {
         if (cola.isEmpty()) {
             return null;
         }
