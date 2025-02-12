@@ -29,14 +29,16 @@ public class InspectorCalidad extends Thread {
     public void run() {
         try {
             while (true) {
-                // Retira un producto del buzón de revisión (bloquea si está vacío)
+                // Intentar retirar un producto sin bloquear (semi-activo)
                 Product p = buzonRevision.retirar();
-                // (Por diseño, aquí nunca debería aparecer un FIN, 
-                //  porque FIN se deposita en BuzonReproceso. 
-                //  Si apareciera por error, podríamos decidir terminar).
+                if (p == null) {
+                    // No hay productos en el buzón de revisión: ceder el turno a otros hilos.
+                    Thread.yield();
+                    continue;
+                }
+
+                // Si, por error, se obtiene FIN desde aquí (lo normal es que FIN vaya al buzón de reproceso)
                 if (p.isFin()) {
-                    // Caso no contemplado en la especificación,
-                    // pero podemos simplemente terminar:
                     System.out.println("Inspector " + idInspector 
                                        + " detectó FIN en BuzonRevision (inusual). Termina.");
                     break;
@@ -50,7 +52,6 @@ public class InspectorCalidad extends Thread {
                                        + p + " (Total aprobados: " + aprobados + ")");
                     // Si al depositar se alcanza o supera la meta, se genera FIN y se termina.
                     if (aprobados >= totalEsperado) {
-                        // Generar “FIN” en el buzón de reproceso
                         Product finProduct = new Product("FIN", true);
                         buzonReproceso.depositar(finProduct);
                         System.out.println("Inspector " + idInspector 
@@ -64,7 +65,7 @@ public class InspectorCalidad extends Thread {
                                        + p + " (lo envía a reproceso)");
                 }
 
-                // Simula tiempo de revisión
+                // Simula el tiempo de revisión (sin afectar la espera semi-activa)
                 Thread.sleep(2000);
             }
         } catch (InterruptedException e) {
@@ -75,9 +76,8 @@ public class InspectorCalidad extends Thread {
 
     /**
      * Lógica de decisión de aprobación:
-     * - Cada inspector puede fallar hasta maxFallos veces.
-     * - Si aún no hemos alcanzado maxFallos, un número aleatorio 1..100 
-     *   que sea múltiplo de 7 => rechazo.
+     * - Cada inspector puede fallar máximo el 10% del total de productos a producir.
+     * - Si aún no se ha alcanzado el máximo, un número aleatorio entre 1 y 100 que sea múltiplo de 7 => rechazo.
      */
     private boolean decideAprobacion() {
         if (fallosRealizados >= maxFallos) {

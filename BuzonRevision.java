@@ -25,15 +25,14 @@ public class BuzonRevision {
     }
 
     /**
-     * Retira un producto de manera bloqueante.
-     * Si la cola está vacía, el hilo hace wait() hasta que alguien deposite.
+     * Retira un producto de manera no bloqueante.
+     * Si no hay productos disponibles, retorna null.
      */
-    public synchronized Product retirar() throws InterruptedException {
-        while (cola.isEmpty()) {
-            wait();
+    public synchronized Product retirar() {
+        if (cola.isEmpty()) {
+            return null;
         }
         Product p = cola.remove();
-        // Notificar a posibles hilos que estén esperando depositar
         notifyAll();
         return p;
     }
