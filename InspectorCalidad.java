@@ -66,7 +66,7 @@ public class InspectorCalidad extends Thread {
                 }
 
                 // Simula el tiempo de revisión (sin afectar la espera semi-activa)
-                Thread.sleep(2000);
+                Thread.sleep(150);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

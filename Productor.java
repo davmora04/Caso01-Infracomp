@@ -65,14 +65,14 @@ public class Productor extends Thread {
      * Simula el tiempo de fabricación de un producto nuevo.
      */
     private void fabricar(Product p) throws InterruptedException {
-        Thread.sleep(2000);
+        Thread.sleep(150);
     }
 
     /**
      * Simula el tiempo de reproceso de un producto rechazado.
      */
     private void reprocesar(Product p) throws InterruptedException {
-        Thread.sleep(2000);
+        Thread.sleep(150);
     }
 
     /**

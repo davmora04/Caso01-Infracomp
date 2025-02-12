@@ -12,8 +12,7 @@ public class BuzonRevision {
 
     /**
      * Deposita un producto de forma bloqueante.
-     * - Si el buzón está lleno, el hilo hace wait() hasta que haya espacio.
-     * - No se maneja FIN aquí (suponemos que FIN no entra nunca al buzón de revisión).
+     * Si el buzón está lleno, el hilo hace wait() hasta que haya espacio.
      */
     public synchronized void depositar(Product p) throws InterruptedException {
         while (cola.size() == capacidad) {
@@ -22,6 +21,8 @@ public class BuzonRevision {
         cola.add(p);
         // Notificar a posibles hilos que estén esperando retirar
         notifyAll();
+        // Mostrar el estado actual del buzón
+        mostrarEstado();
     }
 
     /**
@@ -34,10 +35,28 @@ public class BuzonRevision {
         }
         Product p = cola.remove();
         notifyAll();
+        // Mostrar el estado actual del buzón después de retirar
+        mostrarEstado();
         return p;
     }
 
     public synchronized boolean estaVacio() {
         return cola.isEmpty();
+    }
+
+    /**
+     * Imprime el estado actual del buzón (todos los productos contenidos en él).
+     */
+    private void mostrarEstado() {
+        if (cola.isEmpty()) {
+            System.out.println("BuzonRevision está vacío.");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append("BuzonRevision actual: ");
+            for (Product prod : cola) {
+                sb.append(prod.toString()).append(" ");
+            }
+            System.out.println(sb.toString());
+        }
     }
 }
