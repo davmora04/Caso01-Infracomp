@@ -7,6 +7,7 @@ public class InspectorCalidad extends Thread {
     private final Deposito deposito;
     private final int totalEsperado; 
     private final int maxFallos;
+    private final int numProductores;  // Nuevo atributo
 
     private int fallosRealizados = 0;
     private final Random random = new Random();
@@ -15,12 +16,14 @@ public class InspectorCalidad extends Thread {
                             BuzonRevision buzonRevision,
                             BuzonReproceso buzonReproceso,
                             Deposito deposito,
-                            int totalEsperado) {
+                            int totalEsperado,
+                            int numProductores) { // Se recibe numProductores
         this.idInspector = idInspector;
         this.buzonRevision = buzonRevision;
         this.buzonReproceso = buzonReproceso;
         this.deposito = deposito;
         this.totalEsperado = totalEsperado;
+        this.numProductores = numProductores;
         // Se toma el piso del 10% de totalEsperado.
         this.maxFallos = (int) Math.floor(totalEsperado * 0.1);
     }
@@ -52,10 +55,12 @@ public class InspectorCalidad extends Thread {
                                        + p + " (Total aprobados: " + aprobados + ")");
                     // Si al depositar se alcanza o supera la meta, se genera FIN y se termina.
                     if (aprobados >= totalEsperado) {
-                        Product finProduct = new Product("FIN", true);
-                        buzonReproceso.depositar(finProduct);
+                        for (int i = 0; i < numProductores; i++) {
+                            Product finProduct = new Product("FIN", true);
+                            buzonReproceso.depositar(finProduct);
+                        }
                         System.out.println("Inspector " + idInspector 
-                                           + " alcanza la meta y deposita FIN en BuzonReproceso. Termina.");
+                                           + " alcanza la meta y deposita FIN para todos los productores. Termina.");
                         break; // Este inspector deja de inspeccionar
                     }
                 } else {

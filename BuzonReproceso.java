@@ -12,7 +12,7 @@ public class BuzonReproceso {
 
     /**
      * Método no bloqueante para que el productor verifique sin quedar esperando
-     * (Por si deseas mantener la 'prioridad' de reproceso de forma rápida).
+     * (por si deseas mantener la 'prioridad' de reproceso de forma rápida).
      */
     public synchronized Product retirar() {
         if (cola.isEmpty()) {

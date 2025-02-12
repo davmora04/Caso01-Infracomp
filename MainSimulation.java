@@ -41,7 +41,7 @@ public class MainSimulation {
         // 3) Crear y arrancar inspectores
         InspectorCalidad[] inspectores = new InspectorCalidad[numInspectores];
         for (int j = 0; j < numInspectores; j++) {
-            inspectores[j] = new InspectorCalidad(j, buzRev, buzRepro, deposito, totalEsperado);
+            inspectores[j] = new InspectorCalidad(j, buzRev, buzRepro, deposito, totalEsperado, numProductores);
             inspectores[j].start();
         }
 
