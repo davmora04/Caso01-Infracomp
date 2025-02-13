@@ -26,22 +26,36 @@ public class MainSimulation {
                 + ", TotalEsperado: " + totalEsperado
                 + ", CapacidadBuzonRevision: " + capacidadRevision);
 
-        // 1) Instanciar buzones y depósito
+        // 1) Instanciar objetos compartidos
         BuzonReproceso buzRepro = new BuzonReproceso();
         BuzonRevision buzRev = new BuzonRevision(capacidadRevision);
         Deposito deposito = new Deposito();
 
+        // 1.1) Nueva bandera global:
+        ControlGlobal controlGlobal = new ControlGlobal();
+
         // 2) Crear y arrancar productores
         Productor[] productores = new Productor[numProductores];
         for (int i = 0; i < numProductores; i++) {
-            productores[i] = new Productor(i, buzRepro, buzRev);
+            // En tu caso, no es estrictamente necesario pasar la bandera a Productor,
+            // dado que ellos ya terminan al recibir "FIN" por reproceso.
+            // Pero si quisieras que los productores también respetaran la bandera, podrías cambiar su constructor.
+            productores[i] = new Productor(i, buzRepro, buzRev,  controlGlobal);
             productores[i].start();
         }
 
-        // 3) Crear y arrancar inspectores
+        // 3) Crear y arrancar inspectores, pasándoles la bandera
         InspectorCalidad[] inspectores = new InspectorCalidad[numInspectores];
         for (int j = 0; j < numInspectores; j++) {
-            inspectores[j] = new InspectorCalidad(j, buzRev, buzRepro, deposito, totalEsperado, numProductores);
+            inspectores[j] = new InspectorCalidad(
+                    j,
+                    buzRev,
+                    buzRepro,
+                    deposito,
+                    totalEsperado,
+                    numProductores,
+                    controlGlobal // <--- Se la pasamos
+            );
             inspectores[j].start();
         }
 
@@ -53,9 +67,8 @@ public class MainSimulation {
                 e.printStackTrace();
             }
         }
-        // 5) Una vez no haya más inspectores, los productores deberían terminar 
-        //    en cuanto vean el FIN en el BuzonReproceso (o se queden bloqueados 
-        //    si no hay FIN). Esperamos a que terminen.
+
+        // 5) Esperar a que terminen productores
         for (Productor p : productores) {
             try {
                 p.join();

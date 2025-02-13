@@ -7,26 +7,29 @@ public class Productor extends Thread {
     private final int idProductor;
     private final BuzonReproceso buzonReproceso;
     private final BuzonRevision buzonRevision;
+    private final ControlGlobal controlGlobal;  // <--- Referencia a la bandera
 
     public Productor(int idProductor, 
                      BuzonReproceso buzonReproceso,
-                     BuzonRevision buzonRevision) {
+                     BuzonRevision buzonRevision,
+                     ControlGlobal controlGlobal) {
         this.idProductor = idProductor;
         this.buzonReproceso = buzonReproceso;
         this.buzonRevision = buzonRevision;
+        this.controlGlobal = controlGlobal;  // <--- Guardamos
     }
 
     @Override
     public void run() {
         try {
-            while (true) {
-                // 1) Prioridad: Verificar si hay producto en reproceso (sin bloquear)
+            // Mientras no haya finalización global
+            while (!controlGlobal.isFin()) {
+                
+                // 1) Prioridad: Verificar si hay producto en reproceso
                 Product prodRepro = buzonReproceso.retirar();
-
                 if (prodRepro != null) {
-                    // Hay producto en reproceso
+                    // Si es FIN -> salir
                     if (prodRepro.isFin()) {
-                        // Si es FIN, el productor termina
                         System.out.println("Productor " + idProductor
                                 + " recibe FIN de BuzonReproceso. Termina.");
                         break;
@@ -36,21 +39,30 @@ public class Productor extends Thread {
                                 + " REPROCESANDO " + prodRepro);
                         reprocesar(prodRepro);
 
+                        // Antes de depositar, re-verificamos la bandera:
+                        if (controlGlobal.isFin()) {
+                            break; 
+                        }
+
                         // Bloquea si el buzón de revisión está lleno
-                        buzonRevision.depositar(prodRepro);
+                        buzonRevision.depositar(prodRepro, controlGlobal);
                         System.out.println("Productor " + idProductor
                                 + " deposita REPROCESADO en BuzonRevision: " + prodRepro);
                     }
-                } 
-                else {
-                    // 2) Si no hay producto para reprocesar, fabricar uno nuevo
+                } else {
+                    // 2) No hay producto para reprocesar => fabricar uno nuevo
                     Product nuevo = generarProductoNuevo();
                     System.out.println("Productor " + idProductor
                             + " FABRICANDO " + nuevo);
                     fabricar(nuevo);
 
-                    // Bloquea si el buzón de revisión está lleno
-                    buzonRevision.depositar(nuevo);
+                    // Re-verificar bandera:
+                    if (controlGlobal.isFin()) {
+                        break;
+                    }
+
+                    // Bloquea si el buzón está lleno
+                    buzonRevision.depositar(nuevo, controlGlobal);
                     System.out.println("Productor " + idProductor
                             + " deposita NUEVO en BuzonRevision: " + nuevo);
                 }
@@ -59,25 +71,17 @@ public class Productor extends Thread {
             Thread.currentThread().interrupt();
             System.out.println("Productor " + idProductor + " interrumpido!");
         }
+        System.out.println("Productor " + idProductor + " finaliza.");
     }
 
-    /**
-     * Simula el tiempo de fabricación de un producto nuevo.
-     */
     private void fabricar(Product p) throws InterruptedException {
         Thread.sleep(150);
     }
 
-    /**
-     * Simula el tiempo de reproceso de un producto rechazado.
-     */
     private void reprocesar(Product p) throws InterruptedException {
         Thread.sleep(150);
     }
 
-    /**
-     * Genera un nuevo producto con un identificador único.
-     */
     private Product generarProductoNuevo() {
         int productId = ContadorProducto.getAndIncrement();
         String nombre = "P" + idProductor + "_"+productId;

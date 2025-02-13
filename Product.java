@@ -1,6 +1,6 @@
 public class Product {
-    private final String id;     // Ej: "P0_1234"
-    private final boolean fin;   // true si es FIN
+    private final String id;     
+    private final boolean fin;   
 
     public Product(String id, boolean fin) {
         this.id = id;

@@ -7,43 +7,50 @@ public class InspectorCalidad extends Thread {
     private final Deposito deposito;
     private final int totalEsperado; 
     private final int maxFallos;
-    private final int numProductores;  // Nuevo atributo
-
+    // Nota: numProductores ya no se utiliza para depositar FIN, pero se puede conservar
+    private final int numProductores;  
     private int fallosRealizados = 0;
     private final Random random = new Random();
 
-    public InspectorCalidad(int idInspector, 
-                            BuzonRevision buzonRevision,
-                            BuzonReproceso buzonReproceso,
-                            Deposito deposito,
-                            int totalEsperado,
-                            int numProductores) { // Se recibe numProductores
+    // Banda global de finalización
+    private final ControlGlobal controlGlobal;
+
+    public InspectorCalidad(
+        int idInspector, 
+        BuzonRevision buzonRevision,
+        BuzonReproceso buzonReproceso,
+        Deposito deposito,
+        int totalEsperado,
+        int numProductores,
+        ControlGlobal controlGlobal
+    ) {
         this.idInspector = idInspector;
         this.buzonRevision = buzonRevision;
         this.buzonReproceso = buzonReproceso;
         this.deposito = deposito;
         this.totalEsperado = totalEsperado;
         this.numProductores = numProductores;
-        // Se toma el piso del 10% de totalEsperado.
         this.maxFallos = (int) Math.floor(totalEsperado * 0.1);
+        this.controlGlobal = controlGlobal;
     }
 
     @Override
     public void run() {
         try {
-            while (true) {
-                // Intentar retirar un producto sin bloquear (semi-activo)
+            // Mientras no se active la bandera de finalización global.
+            while (!controlGlobal.isFin()) {
+                // Intentar retirar un producto del buzón de revisión.
                 Product p = buzonRevision.retirar();
                 if (p == null) {
-                    // No hay productos en el buzón de revisión: ceder el turno a otros hilos.
+                    // No hay productos: ceder el turno.
                     Thread.yield();
                     continue;
                 }
 
-                // Si, por error, se obtiene FIN desde aquí (lo normal es que FIN vaya al buzón de reproceso)
+                // Por si acaso llega un FIN en el buzón de revisión.
                 if (p.isFin()) {
                     System.out.println("Inspector " + idInspector 
-                                       + " detectó FIN en BuzonRevision (inusual). Termina.");
+                        + " detectó FIN en BuzonRevision. Termina.");
                     break;
                 }
 
@@ -52,38 +59,40 @@ public class InspectorCalidad extends Thread {
                 if (aprobado) {
                     int aprobados = deposito.depositarConConteo(p);
                     System.out.println("Inspector " + idInspector + " APRUEBA " 
-                                       + p + " (Total aprobados: " + aprobados + ")");
-                    // Si al depositar se alcanza o supera la meta, se genera FIN y se termina.
+                        + p + " (Total aprobados: " + aprobados + ")");
+                    
+                    // Si al depositar se alcanza o supera la meta...
                     if (aprobados >= totalEsperado) {
-                        for (int i = 0; i < numProductores; i++) {
-                            Product finProduct = new Product("FIN", true);
-                            buzonReproceso.depositar(finProduct);
+                        // Usamos un bloque sincronizado para asegurarnos que solo un inspector realice el depósito del FIN.
+                        synchronized (controlGlobal) {
+                            if (!controlGlobal.isFin()) {
+                                controlGlobal.setFin(true);
+                                // Se deposita un único FIN para notificar a los productores.
+                                Product finProduct = new Product("FIN", true);
+                                buzonReproceso.depositar(finProduct);
+                                System.out.println("Inspector " + idInspector 
+                                    + " alcanza la meta y deposita FIN para productores. Termina.");
+                            }
                         }
-                        System.out.println("Inspector " + idInspector 
-                                           + " alcanza la meta y deposita FIN para todos los productores. Termina.");
-                        break; // Este inspector deja de inspeccionar
+                        break; // Termina el ciclo del inspector.
                     }
                 } else {
-                    // Producto rechazado se envía a reproceso
+                    // Producto rechazado se envía a reproceso.
                     buzonReproceso.depositar(p);
                     System.out.println("Inspector " + idInspector + " RECHAZA " 
-                                       + p + " (lo envía a reproceso)");
+                        + p + " (lo envía a reproceso)");
                 }
 
-                // Simula el tiempo de revisión (sin afectar la espera semi-activa)
+                // Simula el tiempo de revisión.
                 Thread.sleep(150);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.out.println("Inspector " + idInspector + " interrumpido!");
         }
+        System.out.println("Inspector " + idInspector + " finaliza.");
     }
 
-    /**
-     * Lógica de decisión de aprobación:
-     * - Cada inspector puede fallar máximo el 10% del total de productos a producir.
-     * - Si aún no se ha alcanzado el máximo, un número aleatorio entre 1 y 100 que sea múltiplo de 7 => rechazo.
-     */
     private boolean decideAprobacion() {
         if (fallosRealizados >= maxFallos) {
             return true;
