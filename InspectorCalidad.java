@@ -6,9 +6,7 @@ public class InspectorCalidad extends Thread {
     private final BuzonReproceso buzonReproceso;
     private final Deposito deposito;
     private final int totalEsperado; 
-    private final int maxFallos;
-    // Nota: numProductores ya no se utiliza para depositar FIN, pero se puede conservar
-    private final int numProductores;  
+    private final int maxFallos; 
     private int fallosRealizados = 0;
     private final Random random = new Random();
 
@@ -29,7 +27,6 @@ public class InspectorCalidad extends Thread {
         this.buzonReproceso = buzonReproceso;
         this.deposito = deposito;
         this.totalEsperado = totalEsperado;
-        this.numProductores = numProductores;
         this.maxFallos = (int) Math.floor(totalEsperado * 0.1);
         this.controlGlobal = controlGlobal;
     }
