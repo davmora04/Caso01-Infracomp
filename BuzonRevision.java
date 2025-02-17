@@ -11,7 +11,7 @@ public class BuzonRevision {
     }
 
     /**
-     * Deposita un producto de forma bloqueante.
+     * Deposita un producto
      * Si el buzón está lleno, el hilo hace wait() hasta que haya espacio.
      */
     public synchronized void depositar(Product p, ControlGlobal cg) throws InterruptedException {
@@ -30,8 +30,8 @@ public class BuzonRevision {
     }
 
     /**
-     * Retira un producto de manera no bloqueante.
-     * Si no hay productos disponibles, retorna null.
+     * Retira un producto.
+     * Si no hay productos disponibles, no retorna nada.
      */
     public synchronized Product retirar() {
         if (cola.isEmpty()) {
@@ -49,7 +49,7 @@ public class BuzonRevision {
     }
 
     /**
-     * Imprime el estado actual del buzón (todos los productos contenidos en él).
+     * Imprime el estado actual del buzón (los productos contenidos en él).
      */
     private void mostrarEstado() {
         if (!cola.isEmpty()) {

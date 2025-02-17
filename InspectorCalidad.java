@@ -39,12 +39,12 @@ public class InspectorCalidad extends Thread {
                 // Intentar retirar un producto del buzón de revisión.
                 Product p = buzonRevision.retirar();
                 if (p == null) {
-                    // No hay productos: ceder el turno.
+                    // Si no hay productos: se cede el turno.
                     Thread.yield();
                     continue;
                 }
 
-                // Por si acaso llega un FIN en el buzón de revisión.
+                // Por si acaso llega un FIN en el buzón de revisión (Que no debería pasar).
                 if (p.isFin()) {
                     System.out.println("Inspector " + idInspector 
                         + " detectó FIN en BuzonRevision. Termina.");
@@ -58,9 +58,9 @@ public class InspectorCalidad extends Thread {
                     System.out.println("Inspector " + idInspector + " APRUEBA " 
                         + p + " (Total aprobados: " + aprobados + ")");
                     
-                    // Si al depositar se alcanza o supera la meta...
+                    // Si al depositar se alcanza o supera la meta, entonces:
                     if (aprobados >= totalEsperado) {
-                        // Usamos un bloque sincronizado para asegurarnos que solo un inspector realice el depósito del FIN.
+                        // Se usa un bloque sincronizado para asegurarse que solo un inspector realice el depósito del FIN.
                         synchronized (controlGlobal) {
                             if (!controlGlobal.isFin()) {
                                 controlGlobal.setFin(true);
@@ -80,7 +80,7 @@ public class InspectorCalidad extends Thread {
                         + p + " (lo envía a reproceso)");
                 }
 
-                // Simula el tiempo de revisión.
+                // Simulación del tiempo de revisión.
                 Thread.sleep(150);
             }
         } catch (InterruptedException e) {

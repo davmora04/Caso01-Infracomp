@@ -7,7 +7,7 @@ public class Productor extends Thread {
     private final int idProductor;
     private final BuzonReproceso buzonReproceso;
     private final BuzonRevision buzonRevision;
-    private final ControlGlobal controlGlobal;  // <--- Referencia a la bandera
+    private final ControlGlobal controlGlobal;  
 
     public Productor(int idProductor, 
                      BuzonReproceso buzonReproceso,
@@ -16,7 +16,7 @@ public class Productor extends Thread {
         this.idProductor = idProductor;
         this.buzonReproceso = buzonReproceso;
         this.buzonRevision = buzonRevision;
-        this.controlGlobal = controlGlobal;  // <--- Guardamos
+        this.controlGlobal = controlGlobal;  // <-- Se guarda
     }
 
     @Override
@@ -28,7 +28,7 @@ public class Productor extends Thread {
                 // 1) Prioridad: Verificar si hay producto en reproceso
                 Product prodRepro = buzonReproceso.retirar();
                 if (prodRepro != null) {
-                    // Si es FIN -> salir
+                    // Si es FIN, entonces salir
                     if (prodRepro.isFin()) {
                         System.out.println("Productor " + idProductor
                                 + " recibe FIN de BuzonReproceso. Termina.");
@@ -39,7 +39,7 @@ public class Productor extends Thread {
                                 + " REPROCESANDO " + prodRepro);
                         reprocesar(prodRepro);
 
-                        // Antes de depositar, re-verificamos la bandera:
+                        // Antes de depositar, se reverifica la bandera:
                         if (controlGlobal.isFin()) {
                             break; 
                         }
@@ -56,7 +56,7 @@ public class Productor extends Thread {
                             + " FABRICANDO " + nuevo);
                     fabricar(nuevo);
 
-                    // Re-verificar bandera:
+                    // Reverificar bandera:
                     if (controlGlobal.isFin()) {
                         break;
                     }

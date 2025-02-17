@@ -37,14 +37,11 @@ public class MainSimulation {
         // 2) Crear y arrancar productores
         Productor[] productores = new Productor[numProductores];
         for (int i = 0; i < numProductores; i++) {
-            // En tu caso, no es estrictamente necesario pasar la bandera a Productor,
-            // dado que ellos ya terminan al recibir "FIN" por reproceso.
-            // Pero si quisieras que los productores también respetaran la bandera, podrías cambiar su constructor.
             productores[i] = new Productor(i, buzRepro, buzRev,  controlGlobal);
             productores[i].start();
         }
 
-        // 3) Crear y arrancar inspectores, pasándoles la bandera
+        // 3) Crear y arrancar inspectores
         InspectorCalidad[] inspectores = new InspectorCalidad[numInspectores];
         for (int j = 0; j < numInspectores; j++) {
             inspectores[j] = new InspectorCalidad(
@@ -54,7 +51,7 @@ public class MainSimulation {
                     deposito,
                     totalEsperado,
                     numProductores,
-                    controlGlobal // <--- Se la pasamos
+                    controlGlobal 
             );
             inspectores[j].start();
         }
