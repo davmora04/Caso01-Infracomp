@@ -16,7 +16,7 @@ public class Productor extends Thread {
         this.idProductor = idProductor;
         this.buzonReproceso = buzonReproceso;
         this.buzonRevision = buzonRevision;
-        this.controlGlobal = controlGlobal;  // <-- Se guarda
+        this.controlGlobal = controlGlobal;  
     }
 
     @Override
